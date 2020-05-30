@@ -162,42 +162,17 @@ public class ElasticSearchTransportClient implements ElasticSearchClient {
   public void addEvent(Event event, IndexNameBuilder indexNameBuilder,
       String indexType, long ttlMs) throws Exception {
     if (bulkRequestBuilder == null) {
-//      bulkRequestBuilder = client.prepareBulk();
-    	 bulkRequestBuilder = new BulkRequest();
+	    bulkRequestBuilder = new BulkRequest();
     }
-
-    /*
-    IndexRequestBuilder indexRequestBuilder = null;
-    if (indexRequestBuilderFactory == null) {
-      indexRequestBuilder = client
-          .index(indexNameBuilder.getIndexName(event), indexType)
-          .setSource(serializer.getContentBuilder(event).toString().getBytes());
-    } else {
-      indexRequestBuilder = indexRequestBuilderFactory.createIndexRequest(
-          client, indexNameBuilder.getIndexPrefix(event), indexType, event);
-    }
-
-    if (ttlMs > 0) {
-      indexRequestBuilder.setTTL(ttlMs);
-    }
-    bulkRequestBuilder.add(indexRequestBuilder);
-     */
-    try {
-    	IndexRequest request = new IndexRequest(indexNameBuilder.getIndexName(event));
-		request.source(new String(event.getBody(), "UTF-8").replaceAll("}", ",\"docType\":"+"\""+indexType+"\"}"), XContentType.JSON);
-		bulkRequestBuilder.add(request);
-	} catch (Exception e) {
-		e.printStackTrace();
-	}
+	    IndexRequest request = new IndexRequest(indexNameBuilder.getIndexName(event));
+      request.source(event.getBody(), XContentType.JSON);
+      bulkRequestBuilder.add(request);
   }
 
   @Override
   public void execute() throws Exception {
     try {
      BulkResponse response = client.bulk(bulkRequestBuilder, RequestOptions.DEFAULT);
-//     if(response.hasFailures()) {
-//    	 logger.error(response.buildFailureMessage());
-//     }
     } finally {
       bulkRequestBuilder = new BulkRequest();
     }
@@ -214,10 +189,7 @@ public class ElasticSearchTransportClient implements ElasticSearchClient {
     
     HttpHost[] hosts = new HttpHost[serverAddresses.length];
 
-    //TransportClient transportClient = new TransportClient(settings);
-    //for (TransportAddress host : serverAddresses) {
     for(int i = 0; i < serverAddresses.length; i++) {
-      //transportClient.addTransportAddress(host);
     	TransportAddress host = serverAddresses[i];
     	hosts[i] = new HttpHost(host.getAddress(), host.getPort(), "http");
     }
@@ -240,14 +212,6 @@ public class ElasticSearchTransportClient implements ElasticSearchClient {
    * in the same JVM
    */
   private void openLocalDiscoveryClient() {
-	  /*
-    logger.info("Using ElasticSearch AutoDiscovery mode");
-    Node node = NodeBuilder.nodeBuilder().client(true).local(true).node();
-    if (client != null) {
-      client.close();
-    }
-    client = node.client();
-    */
   }
 
   @Override
